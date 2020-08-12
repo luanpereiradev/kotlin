@@ -125,6 +125,7 @@ abstract class FirDataFlowAnalyzer<FLOW : Flow>(
          * If there is no useful information there is no data flow variable also
          */
         val symbol: AbstractFirBasedSymbol<*> = qualifiedAccessExpression.symbol ?: return null
+        if (graphBuilder.isEmpty) return null
         val flow = graphBuilder.lastNode.flow
         var variable = variableStorage.getRealVariableWithoutUnwrappingAlias(symbol, qualifiedAccessExpression, flow) ?: return null
         val result = mutableListOf<ConeKotlinType>()
@@ -491,9 +492,12 @@ abstract class FirDataFlowAnalyzer<FLOW : Flow>(
                 flow.addImplication((expressionVariable notEq isEq) implies (operandVariable typeEq any))
             }
 
-//            TODO: design do we need casts to Nothing?
-//            flow.addImplication((expressionVariable eq !isEq) implies (operandVariable typeEq nullableNothing))
-//            flow.addImplication((expressionVariable notEq !isEq) implies (operandVariable typeNotEq nullableNothing))
+            operationStatementTester.invoke(expressionVariable eq !isEq) {
+                flow.addImplication((expressionVariable eq !isEq) implies (operandVariable typeNotEq nullableNothing))
+            }
+            operationStatementTester.invoke(expressionVariable notEq !isEq) {
+                flow.addImplication((expressionVariable notEq !isEq) implies (operandVariable typeEq nullableNothing))
+            }
         }
         node.flow = flow
     }

@@ -239,6 +239,8 @@ private fun BodyResolveComponents.typeFromSymbol(symbol: AbstractFirBasedSymbol<
 fun BodyResolveComponents.transformQualifiedAccessUsingSmartcastInfo(qualifiedAccessExpression: FirQualifiedAccessExpression): FirQualifiedAccessExpression {
     val typesFromSmartCast = dataFlowAnalyzer.getTypeUsingSmartcastInfo(qualifiedAccessExpression) ?: return qualifiedAccessExpression
     val allTypes = typesFromSmartCast.also {
+        // Don't add explicit smartcast to Nothing?
+        it -= session.builtinTypes.nullableNothingType.type
         it += qualifiedAccessExpression.resultType.coneType
     }
     val intersectedType = ConeTypeIntersector.intersectTypes(inferenceComponents.ctx, allTypes)

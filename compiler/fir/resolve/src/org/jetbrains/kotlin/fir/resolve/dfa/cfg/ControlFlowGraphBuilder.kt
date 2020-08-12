@@ -33,6 +33,10 @@ class ControlFlowGraphBuilder {
         get() = graphs.top()
 
     private val lastNodes: Stack<CFGNode<*>> = stackOf()
+
+    val isEmpty: Boolean
+        get() = lastNodes.isEmpty
+
     val lastNode: CFGNode<*>
         get() = lastNodes.top()
 

@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystemBuilder
 import org.jetbrains.kotlin.resolve.calls.inference.addSubtypeConstraintIfCompatible
 import org.jetbrains.kotlin.resolve.calls.inference.model.SimpleConstraintSystemConstraintPosition
+import org.jetbrains.kotlin.types.AbstractTypeChecker
 import org.jetbrains.kotlin.types.model.CaptureStatus
 
 fun Candidate.resolveArgumentExpression(
@@ -193,7 +194,20 @@ fun Candidate.resolvePlainExpressionArgument(
     useNullableArgumentType: Boolean = false
 ) {
     if (expectedType == null) return
-    val argumentType = argument.typeRef.coneTypeSafe<ConeKotlinType>() ?: return
+    var argumentType: ConeKotlinType = argument.typeRef.coneTypeSafe<ConeKotlinType>() ?: return
+    if (argument is FirQualifiedAccessExpression && argumentType.isNullable) {
+        val typesFromSmartCast = bodyResolveComponents.dataFlowAnalyzer.getTypeUsingSmartcastInfo(argument)
+        if (typesFromSmartCast != null) {
+            val allTypes = typesFromSmartCast.also { it += argumentType }
+            val intersectedType = ConeTypeIntersector.intersectTypes(bodyResolveComponents.inferenceComponents.ctx, allTypes)
+            // Use Nothing? during resolution if the argument type without smartcast info is different from the expected type.
+            if (intersectedType == bodyResolveComponents.session.builtinTypes.nullableNothingType.type &&
+                !AbstractTypeChecker.equalTypes(bodyResolveComponents.session.typeContext, expectedType, argumentType)
+            ) {
+                argumentType = intersectedType
+            }
+        }
+    }
     resolvePlainArgumentType(csBuilder, argumentType, expectedType, sink, isReceiver, isDispatch, useNullableArgumentType)
     checkApplicabilityForIntegerOperatorCall(sink, argument)
 }

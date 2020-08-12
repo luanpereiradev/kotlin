@@ -37,7 +37,6 @@ FILE: conditionLogic.kt
     @R|kotlin/OptIn|(vararg(<getClass>(Q|kotlin/contracts/ExperimentalContracts|))) public final fun test5(x: R|kotlin/Any?|): R|kotlin/Any?|
         [R|Contract description]
          <
-            Returns(TRUE) -> x != null || x is kotlin/Any
         >
      {
         [StubStatement]

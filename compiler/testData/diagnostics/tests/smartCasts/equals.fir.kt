@@ -7,14 +7,14 @@ class TestWithEquals {
 }
 
 fun bar(i: Test?) {
-    if (i == null) <!INAPPLICABLE_CANDIDATE!>foo<!>(i)
+    if (i == null) foo(i)
 }
 
 fun bar(i: TestWithEquals?) {
-    if (i == null) <!INAPPLICABLE_CANDIDATE!>foo<!>(i)
-    if (null == i) <!INAPPLICABLE_CANDIDATE!>foo<!>(i)
+    if (i == null) foo(i)
+    if (null == i) foo(i)
     when (i) {
-        null -> <!INAPPLICABLE_CANDIDATE!>foo<!>(i)
+        null -> foo(i)
     }
 }
 
